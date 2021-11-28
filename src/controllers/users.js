@@ -1,11 +1,12 @@
+const { v4: uuid } = require('uuid');
 const ApiError = require('../utils/ApiError');
-
 const { User } = require('../database/models');
-const { generateAccessToken } = require('../services/jwt');
+const { generateAccessToken, toInvalidTokens, toInvalidTokensVerify } = require('../services/jwt');
 
 const UserSerializer = require('../serializers/UserSerializer');
 const AuthSerializer = require('../serializers/AuthSerializer');
 const UsersSerializer = require('../serializers/UsersSerializer');
+const { transporter } = require('../nodemailer/mailer');
 
 const { ROLES } = require('../config/constants');
 
@@ -100,6 +101,33 @@ const updateUser = async (req, res, next) => {
   }
 };
 
+const updatePassword = async (req, res, next) => {
+  try {
+    const { body } = req;
+
+    if (body.password === undefined || body.passwordConfirmation === undefined) {
+      throw new ApiError('User not found', 400);
+    }
+
+    if (body.password !== body.passwordConfirmation) {
+      throw new ApiError('Passwords do not match', 400);
+    }
+
+    const userId = Number(req.user.id);
+    req.isUserAuthorized(userId);
+
+    const user = await findUser({ id: userId });
+
+    Object.assign(user, body.password);
+
+    await user.update({ password: body.password });
+
+    res.json(new UserSerializer(user));
+  } catch (err) {
+    next(err);
+  }
+};
+
 const deactivateUser = async (req, res, next) => {
   try {
     const { params } = req;
@@ -129,9 +157,83 @@ const loginUser = async (req, res, next) => {
       throw new ApiError('User not found', 400);
     }
 
+    const loginDate = {
+      lastLoginDate: new Date(),
+    };
+
+    Object.assign(user, loginDate);
+
+    await user.save();
+
     const accessToken = generateAccessToken(user.id, user.role);
 
     res.json(new AuthSerializer(accessToken));
+  } catch (err) {
+    next(err);
+  }
+};
+
+const sendEmailPassword = async (req, res, next) => {
+  try {
+    const { body } = req;
+    if (body.username === undefined) {
+      throw new ApiError('error', 400);
+    }
+    const user = await findUser({ username: body.username });
+    if (!user) {
+      throw new ApiError('User not found', 404);
+    }
+    const emailUser = user.dataValues.email;
+
+    user.token = uuid();
+    await user.save();
+
+    await transporter.sendMail({
+      from: '"Forgot password" <amezanode@gmail.com>', // sender address
+      to: emailUser, // list of receivers
+      subject: 'Forgot password ✔', // Subject line
+      html: `<b>Hi,</b>
+        <p>Please click on the following link, or paste this into your browser to complete process </p>
+        <br>
+        <a href="${user.token}">${user.token}</a>
+        <p>Atentamente, <br>  
+        Trinos-API</p>`, // html body
+    });
+    res.json({ status: 'success', data: null });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const resetPasswWord = async (req, res, next) => {
+  try {
+    const { body } = req;
+
+    const user = await User.findOne({ token: body.token });
+    console.log('TOKEN EMAIL', body.token);
+    console.log('TOKEN BASE DE DATOS', user.token);
+    if (body.token !== user.token) {
+      throw new ApiError('Invalid Token', 403);
+    }
+
+    if (body.password !== body.passwordConfirmation) {
+      throw new ApiError('Passwords do not match', 400);
+    }
+
+    await user.update({ password: body.password });
+
+    res.json(new UserSerializer(user));
+  } catch (err) {
+    next(err);
+  }
+};
+
+const logOut = async (req, res, next) => {
+  try {
+    const user = await findUser(req.user.id);
+    const accessToken = req.headers.authorization ? req.headers.authorization.split(' ')[1] : '';
+    toInvalidTokens(accessToken);
+    res.json(new UserSerializer(user));
   } catch (err) {
     next(err);
   }
@@ -144,4 +246,8 @@ module.exports = {
   deactivateUser,
   loginUser,
   getAllUsers,
+  updatePassword,
+  sendEmailPassword,
+  resetPasswWord,
+  logOut,
 };
