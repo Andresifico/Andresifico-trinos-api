@@ -21,7 +21,19 @@ function verifyAccessToken(token) {
   return jwt.verify(token, JWT_SECRET);
 }
 
+const invalidTokens = [];
+
+function toInvalidTokensVerify(token) {
+  return invalidTokens.includes(token);
+}
+
+function toInvalidTokens(token) {
+  invalidTokens.push(token);
+}
+
 module.exports = {
   generateAccessToken,
   verifyAccessToken,
+  toInvalidTokensVerify,
+  toInvalidTokens,
 };
