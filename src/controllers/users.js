@@ -53,7 +53,6 @@ const createUser = async (req, res, next) => {
     }
 
     const user = await User.create(userPayload);
-    console.log('REV', user);
 
     res.json(new UserSerializer(user));
   } catch (err) {
