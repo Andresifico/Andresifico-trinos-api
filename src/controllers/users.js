@@ -53,6 +53,7 @@ const createUser = async (req, res, next) => {
     }
 
     const user = await User.create(userPayload);
+    console.log('REV', user);
 
     res.json(new UserSerializer(user));
   } catch (err) {
@@ -231,7 +232,7 @@ const resetPasswWord = async (req, res, next) => {
 const logOut = async (req, res, next) => {
   try {
     const user = await findUser(req.user.id);
-    const accessToken = req.headers.authorization ? req.headers.authorization.split(' ')[1] : '';
+    const accessToken = req.headers.authorization?.split(' ')[1];
     toInvalidTokens(accessToken);
     res.json(new UserSerializer(user));
   } catch (err) {
