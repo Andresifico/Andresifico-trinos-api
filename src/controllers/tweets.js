@@ -13,7 +13,7 @@ const createTweet = async (req, res, next) => {
     const payload = {
       text: body.text,
       likeCounter: 0,
-      userId: req.user.id,
+      idUser: req.user.id,
     };
 
     const tweet = await Tweet.create(payload);
@@ -50,7 +50,7 @@ const tweetById = async (req, res, next) => {
 
 const tweetsFeed = async (req, res, next) => {
   const where = {
-    userId: req.user.id,
+    idUser: req.user.id,
   };
 
   const allMyTweets = await Tweet.findAll({
