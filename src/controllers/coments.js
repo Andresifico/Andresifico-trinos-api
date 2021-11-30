@@ -30,7 +30,7 @@ const deleteComentById = async (req, res, next) => {
       res.json(response);
     }
     const tweet = await Tweet.findOne({ where: { id: Number(coment.tweetId) } });
-    if (req.user.id === tweet.idUser) {
+    if (req.user.id === tweet.userId) {
       coment.destroy({ where: { id: Number(params.id) } });
     } else {
       response.status = 'error';

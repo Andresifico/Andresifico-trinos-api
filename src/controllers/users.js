@@ -186,7 +186,7 @@ const sendEmailPassword = async (req, res, next) => {
     const emailUser = user.dataValues.email;
 
     user.token = uuid();
-    await user.save();
+    await user.update({ token: user.token });
 
     await transporter.sendMail({
       from: '"Forgot password" <amezanode@gmail.com>', // sender address
@@ -209,9 +209,8 @@ const resetPasswWord = async (req, res, next) => {
   try {
     const { body } = req;
 
-    const user = await User.findOne({ token: body.token });
-    console.log('TOKEN EMAIL', body.token);
-    console.log('TOKEN BASE DE DATOS', user.token);
+    const user = await User.findOne({ where: { token: body.token } });
+
     if (body.token !== user.token) {
       throw new ApiError('Invalid Token', 403);
     }

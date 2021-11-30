@@ -22,7 +22,7 @@ router.get('/all', authMiddleware, paginationMiddleware, getAllUsers);
 router.post('/', createUser);
 router.post('/login', loginUser);
 router.post('/send_password_reset', sendEmailPassword);
-router.get('/:id', getUserById);
+router.get('/:id', authMiddleware, getUserById);
 router.put('/:id', authMiddleware, updateUser);
 router.delete('/:id', authMiddleware, deactivateUser);
 router.post('/update_password', authMiddleware, updatePassword);

@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      User.hasMany(models.Tweet, { foreignKey: 'idUser', as: 'tweets' });
+      User.hasMany(models.Tweet, { foreignKey: 'userId', as: 'tweets' });
     }
 
     comparePassword(plainTextPassword) {

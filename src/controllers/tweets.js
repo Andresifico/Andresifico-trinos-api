@@ -13,7 +13,7 @@ const createTweet = async (req, res, next) => {
     const payload = {
       text: body.text,
       likeCounter: 0,
-      idUser: req.user.id,
+      userId: req.user.id,
     };
 
     const tweet = await Tweet.create(payload);
@@ -25,7 +25,7 @@ const createTweet = async (req, res, next) => {
         attributes: { exclude: ['password', 'active', 'role'] },
       }],
       ...req.pagination,
-      attributes: { exclude: ['idUser'] },
+      attributes: { exclude: ['userId'] },
     });
 
     res.json(new TweetSerializer(resp));
@@ -50,7 +50,7 @@ const tweetById = async (req, res, next) => {
 
 const tweetsFeed = async (req, res, next) => {
   const where = {
-    idUser: req.user.id,
+    userId: req.user.id,
   };
 
   const allMyTweets = await Tweet.findAll({
@@ -65,7 +65,7 @@ const tweetsFeed = async (req, res, next) => {
       as: 'coments',
     }],
     ...req.pagination,
-    attributes: { exclude: ['idUser'] },
+    attributes: { exclude: ['userId'] },
   });
 
   res.json(new TweetsSerializer(allMyTweets, await req.getPaginationInfo(Tweet)));
@@ -79,7 +79,7 @@ const tweetsFeedByUserName = async (req, res, next) => {
       throw new ApiError('User not found', 400);
     }
     const where = {
-      idUser: user.id,
+      userId: user.id,
     };
 
     const myTweets = await Tweet.findAll({
@@ -94,7 +94,7 @@ const tweetsFeedByUserName = async (req, res, next) => {
         as: 'coments',
       }],
       ...req.pagination,
-      attributes: { exclude: ['idUser'] },
+      attributes: { exclude: ['userId'] },
     });
 
     res.json(new TweetsSerializer(myTweets, await req.getPaginationInfo(Tweet)));
@@ -123,7 +123,7 @@ const likeTweet = async (req, res, next) => {
         model: Coment,
         as: 'coments',
       }],
-      attributes: { exclude: ['idUser'] },
+      attributes: { exclude: ['userId'] },
     });
 
     res.json(new TweetSerializer(tweet));
@@ -151,7 +151,7 @@ const deleteTweetById = async (req, res, next) => {
     const { params } = req;
     const tweet = await Tweet.findOne({ where: Number(params.id) });
     const response = { status: 'success', data: null };
-    if (tweet && (req.user.id === tweet.idUser)) {
+    if (tweet && (req.user.id === tweet.userId)) {
       await tweet.destroy({ where: { id: Number(params.id) } });
     } else {
       response.status = 'error';
