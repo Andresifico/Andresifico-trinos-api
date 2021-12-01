@@ -1,7 +1,7 @@
 const { v4: uuid } = require('uuid');
 const ApiError = require('../utils/ApiError');
 const { User } = require('../database/models');
-const { generateAccessToken, toInvalidTokens, toInvalidTokensVerify } = require('../services/jwt');
+const { generateAccessToken, toInvalidTokens } = require('../services/jwt');
 
 const UserSerializer = require('../serializers/UserSerializer');
 const AuthSerializer = require('../serializers/AuthSerializer');

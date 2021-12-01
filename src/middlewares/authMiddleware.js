@@ -1,4 +1,4 @@
-const { verifyAccessToken } = require('../services/jwt');
+const { verifyAccessToken, toInvalidTokensVerify } = require('../services/jwt');
 const ApiError = require('../utils/ApiError');
 
 function authMiddleware(req, res, next) {
@@ -22,6 +22,10 @@ function authMiddleware(req, res, next) {
         throw new ApiError('User not authorized', 403);
       }
     };
+
+    if (toInvalidTokensVerify(accessToken)) {
+      throw new ApiError('error', 401);
+    }
 
     req.user = user;
     req.isRole = isRole;
