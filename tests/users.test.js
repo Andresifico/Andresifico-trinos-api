@@ -299,4 +299,121 @@ describe('Users routes', () => {
     expect(response.body.data[0].password).toBeUndefined();
     expect(response.body.data[0].active).toBeUndefined();
   });
+
+  it('Should send password reset with username', async () => {
+    const payload = {
+      username: 'myusername',
+    };
+    const response = await request(app).post(`${USERS_PATH}/send_password_reset`).send(payload);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.status).toBe('success');
+    expect(response.body.data).toBeNull();
+  });
+  it('Should return error on send password reset with wrong username', async () => {
+    const payload = {
+      username: 'myusernam',
+    };
+    const response = await request(app).post(`${USERS_PATH}/send_password_reset`).send(payload);
+    expect(response.statusCode).toBe(400);
+    expect(response.body.status).toBe('User not found');
+  });
+  it('Should return bad request on send password reset with invalid payload', async () => {
+    const payload = {
+      name: 'myusernam',
+    };
+    const response = await request(app).post(`${USERS_PATH}/send_password_reset`).send(payload);
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.status).toBe('error');
+  });
+
+  it('Should reset password', async () => {
+    const usuario = {
+      password: '12345',
+      passwordConfirmation: '12345',
+      ...NEW_USER,
+    };
+    const firstUser = await User.create(usuario);
+    firstUser.token = generateAccessToken(firstUser.id, firstUser.role);
+    firstUser.save();
+    const payload = {
+      token: firstUser.token,
+      password: '123',
+      passwordConfirmation: '123',
+    };
+
+    const response = await request(app).post(`${USERS_PATH}/reset_password`).send(payload);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.status).toBe('success');
+    expect(response.body.data.name).toBe('Tester user');
+    expect(response.body.data.username).toBe('myusername');
+    expect(response.body.data.email).toBe('tester@test.com');
+    expect(response.body.data.createdAt).not.toBeNull();
+    expect(response.body.data.updatedAt).not.toBeNull();
+    expect(response.body.data.lastLoginDate).toBeNull();
+    expect(response.body.data.password).toBeUndefined();
+    expect(response.body.data.passwordConfirmation).toBeUndefined();
+    expect(response.body.data.active).toBeUndefined();
+    expect(response.body.paginationInfo).toBeNull();
+  });
+  it('Should return bad request on reset password with invalid payload', async () => {
+    const payload = {
+      token: ' ',
+      password: '123',
+      passwordConfirmation: '12',
+    };
+    const response = await request(app).post(`${USERS_PATH}/reset_password`).send(payload);
+    expect(response.statusCode).toBe(500);
+    expect(response.body.status).toBe("Cannot read property 'token' of null");
+  });
+
+  it('Should return access token required on update password when token is null', async () => {
+    const payload = {
+      password: '123',
+      passwordConfirmation: '123',
+    };
+    const response = await request(app).post(`${USERS_PATH}/update_password`).send(payload).set('Authorization', `bearer ${''}`);
+    expect(response.statusCode).toBe(401);
+    expect(response.body.status).toBe('Access token required');
+  });
+  it('Should return bad request on update password with missmatch passwords', async () => {
+    const payload = {
+      password: '123',
+      passwordConfirmation: '12',
+    };
+    const response = await request(app).post(`${USERS_PATH}/update_password`).send(payload).set('Authorization', `bearer ${firstUserAccessToken}`);
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.status).toBe('Passwords do not match');
+  });
+
+  it('Should logout sucessfully', async () => {
+    const response = await request(app).post(`${USERS_PATH}/logout`)
+      .set('Authorization', `bearer ${firstUserAccessToken}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.status).toBe('success');
+    expect(response.body.data).not.toBeNull();
+  });
+
+  it('Should throw error by invalid token', async () => {
+    const USER_ID = 1;
+    const response = await request(app)
+      .delete(`${USERS_PATH}/${USER_ID}`)
+      .set('Authorization', `bearer ${firstUserAccessToken}`);
+
+    expect(response.statusCode).toBe(401);
+    expect(response.body.status).toBe('error');
+    expect(response.body.data).toBeNull();
+  });
+  it('Should return unauthorized on update password when token does not exist', async () => {
+    const payload = {
+      password: '123',
+      passwordConfirmation: '123',
+    };
+    const response = await request(app).post(`${USERS_PATH}/update_password`).send(payload).set('Authorization', `bearer ${firstUserAccessToken}`);
+
+    expect(response.statusCode).toBe(401);
+    expect(response.body.status).toBe('error');
+  });
 });
