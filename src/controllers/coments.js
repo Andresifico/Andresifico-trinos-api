@@ -9,7 +9,7 @@ const likeComents = async (req, res, next) => {
     const coment = await Coment.findOne({ where: comentId });
 
     if (coment === null) {
-      throw new ApiError('Coment not Found', 404);
+      throw new ApiError('Coment not found', 404);
     }
     const actualLikeCounter = coment.likeCounter;
     await coment.update({ likeCounter: actualLikeCounter + 1 });

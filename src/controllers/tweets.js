@@ -108,7 +108,7 @@ const likeTweet = async (req, res, next) => {
     const { params } = req;
     const tweetPrevious = await Tweet.findOne({ where: Number(params.id) });
     if (!tweetPrevious) {
-      throw new ApiError('Tweet Not Found', 404);
+      throw new ApiError('Tweet not found', 404);
     }
     const actualLikeCounter = tweetPrevious.likeCounter;
     await tweetPrevious.update({ likeCounter: (actualLikeCounter + 1) });

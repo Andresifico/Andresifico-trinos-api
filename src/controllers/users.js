@@ -114,11 +114,8 @@ const updatePassword = async (req, res, next) => {
     }
 
     const userId = Number(req.user.id);
-    req.isUserAuthorized(userId);
 
-    const user = await findUser({ id: userId });
-
-    Object.assign(user, body.password);
+    const user = await User.findOne({ where: { id: userId } });
 
     await user.update({ password: body.password });
 
