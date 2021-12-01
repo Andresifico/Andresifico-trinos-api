@@ -22,7 +22,7 @@ const createTweet = async (req, res, next) => {
       include: [{
         model: User,
         as: 'user',
-        attributes: { exclude: ['password', 'active', 'role'] },
+        attributes: { exclude: ['password', 'active', 'role', 'token'] },
       }],
       ...req.pagination,
       attributes: { exclude: ['userId'] },
@@ -58,7 +58,7 @@ const tweetsFeed = async (req, res, next) => {
     include: [{
       model: User,
       as: 'user',
-      attributes: { exclude: ['password', 'active', 'role'] },
+      attributes: { exclude: ['password', 'active', 'role', 'token'] },
     },
     {
       model: Coment,
@@ -87,7 +87,7 @@ const tweetsFeedByUserName = async (req, res, next) => {
       include: [{
         model: User,
         as: 'user',
-        attributes: { exclude: ['password', 'active', 'role'] },
+        attributes: { exclude: ['password', 'active', 'role', 'token'] },
       },
       {
         model: Coment,
@@ -117,7 +117,7 @@ const likeTweet = async (req, res, next) => {
       include: [{
         model: User,
         as: 'user',
-        attributes: { exclude: ['password', 'active', 'role'] },
+        attributes: { exclude: ['password', 'active', 'role', 'token'] },
       },
       {
         model: Coment,

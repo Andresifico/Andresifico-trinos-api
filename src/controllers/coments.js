@@ -7,7 +7,8 @@ const likeComents = async (req, res, next) => {
     const { params } = req;
     const comentId = Number(params.id);
     const coment = await Coment.findOne({ where: comentId });
-    if (!coment) {
+
+    if (coment === null) {
       throw new ApiError('Coment not Found', 404);
     }
     const actualLikeCounter = coment.likeCounter;
@@ -22,21 +23,14 @@ const likeComents = async (req, res, next) => {
 const deleteComentById = async (req, res, next) => {
   try {
     const { params } = req;
-    const response = { status: 'success', data: null };
     const coment = await Coment.findOne({ where: { id: Number(params.id) } });
 
     if (coment === null) {
-      response.status = 'error';
-      res.json(response);
-    }
-    const tweet = await Tweet.findOne({ where: { id: Number(coment.tweetId) } });
-    if (req.user.id === tweet.userId) {
-      coment.destroy({ where: { id: Number(params.id) } });
+      throw new ApiError('Coment not found', 404);
     } else {
-      response.status = 'error';
+      Coment.destroy({ where: { id: Number(params.id) } });
+      res.json(new ComentSerializer(null));
     }
-
-    res.json(response);
   } catch (err) {
     next(err);
   }
