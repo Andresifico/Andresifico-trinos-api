@@ -11,6 +11,21 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const enviarCorreoRecuperacion = async function enviarMail(email, token) {
+  await transporter.sendMail({
+    from: '"Forgot password" <amezanode@gmail.com>', // sender address
+    to: email, // list of receivers
+    subject: 'Forgot password ✔', // Subject line
+    html: `<b>Hi,</b>
+          <p>This is the token for recovering your password, please use it when put a new Password.</p>
+          <br>
+          <a href="${token}">${token}</a>
+          <p>Atentamente, <br>  
+          Trinos-API</p>`, // html body
+  });
+};
+
 module.exports = {
   transporter,
+  enviarCorreoRecuperacion,
 };

@@ -6,7 +6,7 @@ const { generateAccessToken, toInvalidTokens } = require('../services/jwt');
 const UserSerializer = require('../serializers/UserSerializer');
 const AuthSerializer = require('../serializers/AuthSerializer');
 const UsersSerializer = require('../serializers/UsersSerializer');
-const { transporter } = require('../nodemailer/mailer');
+const { enviarCorreoRecuperacion } = require('../nodemailer/mailer');
 
 const { ROLES } = require('../config/constants');
 
@@ -184,18 +184,8 @@ const sendEmailPassword = async (req, res, next) => {
 
     user.token = uuid();
     await user.update({ token: user.token });
+    await enviarCorreoRecuperacion(emailUser, user.token);
 
-    await transporter.sendMail({
-      from: '"Forgot password" <amezanode@gmail.com>', // sender address
-      to: emailUser, // list of receivers
-      subject: 'Forgot password ✔', // Subject line
-      html: `<b>Hi,</b>
-        <p>Please click on the following link, or paste this into your browser to complete process </p>
-        <br>
-        <a href="${user.token}">${user.token}</a>
-        <p>Atentamente, <br>  
-        Trinos-API</p>`, // html body
-    });
     res.json({ status: 'success', data: null });
   } catch (err) {
     next(err);
